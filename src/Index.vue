@@ -1,7 +1,9 @@
 <template>
     <div id="app">
         <div class="twt-page">
-            <nav>TWT</nav>
+            <nav>
+                <span>TWTVK</span>
+            </nav>
             <div class="twt-body">
                 <div class="twt-about">About</div>
                 <div class="twt-profile">
@@ -24,7 +26,8 @@ body {
 }
 
 nav {
-    background: #c9ab4d;
+    background: rgb(201,171,77);
+    background: linear-gradient(0deg, rgba(201,171,77,1) 0%, rgba(170,145,67,1) 100%);
     color: white;
     height: 40px;
     border: 2px groove #c9ab4d;

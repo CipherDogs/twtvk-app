@@ -4,6 +4,9 @@
         <div class="profile">
             <div class="profile-left">
                 <img :src="avatar" />
+                <div class="profile-right-following">
+                    <div class="profile-right-following-name">Following</div>
+                </div>
             </div>
             <div class="profile-right">
                 <div class="profile-right-info">
@@ -18,12 +21,12 @@
                     </table>
                 </div>
                 <div class="profile-right-posts">
-                    <div class="profile-right-wall">Wall</div>
+                    <div class="profile-right-wall">Wall <span>{{ count_posts }} posts</span></div>
                     <div v-for="post in posts" v-bind:key="post.date" class="profile-right-post">
                         <img :src="avatar" />
                         <div>
                             <p>{{ nick }}</p>
-                            <p>{{ post.text }}</p>
+                            <p v-html="post.text"></p>
                             <p>
                                 {{
                                     new Date(post.date).toLocaleDateString(
@@ -32,6 +35,9 @@
                                             year: "numeric",
                                             month: "long",
                                             day: "numeric",
+                                            hour: "numeric",
+                                            minute: "numeric",
+                                            second:"numeric",
                                         }
                                     )
                                 }}
@@ -54,6 +60,7 @@ export default {
             nick: "",
             avatar: "",
             description: "",
+            count_posts: 0,
             posts: [],
         };
     },
@@ -71,8 +78,12 @@ export default {
 
                 posts.forEach((item) => {
                     let date = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[1];
-
                     let text = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[2];
+
+                    let u = text.match(/@<([A-Za-z]+)\s((http:|https:)+[^\s]+[\w])>/);
+                    if (u != null) {
+                        text = text.replace(u[0], `<a href="${u[2]}">@${u[1]}</a>`);
+                    }
 
                     this.posts.push({
                         date,
@@ -81,6 +92,7 @@ export default {
                 });
 
                 this.posts = this.posts.reverse();
+                this.count_posts = this.posts.length;
             })
             .catch((err) => {
                 console.error(err);
@@ -137,14 +149,19 @@ export default {
     width: 30%;
 }
 
-.profile-right-wall {
+.profile-right-following-name, .profile-right-wall {
     background: #eae8cb;
     border-top: 1px solid #dfdabc;
-    height: 20px;
+    height: 14px;
     padding: 3px 8px;
     font-size: 11px;
     font-weight: 700;
     text-align: left;
+}
+
+.profile-right-wall > span {
+    font-weight: normal;
+    color: #abaf72;
 }
 
 .profile-right-post {
@@ -174,7 +191,7 @@ export default {
 }
 
 .profile-right-post p:nth-child(2) {
-    word-break: break-all;
+    word-break: break-word;
 }
 
 .profile-right-post p:nth-child(3) {
