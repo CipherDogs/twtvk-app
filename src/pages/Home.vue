@@ -1,0 +1,183 @@
+<template>
+    <div>
+        <div class="profile-name">{{ nick }}</div>
+        <div class="profile">
+            <div class="profile-left">
+                <img :src="avatar" />
+            </div>
+            <div class="profile-right">
+                <div class="profile-right-info">
+                    <h2 class="profile-right-name">{{ nick }}</h2>
+                    <table class="profile-right-about">
+                        <tbody>
+                            <tr>
+                                <td>About:</td>
+                                <td>{{ description }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="profile-right-posts">
+                    <div class="profile-right-wall">Wall</div>
+                    <div v-for="post in posts" v-bind:key="post.date" class="profile-right-post">
+                        <img :src="avatar" />
+                        <div>
+                            <p>{{ nick }}</p>
+                            <p>{{ post.text }}</p>
+                            <p>
+                                {{
+                                    new Date(post.date).toLocaleDateString(
+                                        "en-US",
+                                        {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        }
+                                    )
+                                }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+            
+<script>
+import axios from "axios";
+
+export default {
+    name: "Home",
+    data() {
+        return {
+            nick: "",
+            avatar: "",
+            description: "",
+            posts: [],
+        };
+    },
+    async mounted() {
+        let url = this.$route.query.url;
+        await axios
+            .get(`https://api.allorigins.win/get?url=${url}`)
+            .then((res) => {
+                let data = res.data.contents;
+                this.nick = data.match(/(\#\s+nick\s+=\s)([A-Za-z0-9]+)/)[2];
+                this.avatar = data.match(/(\#\s+avatar\s+=\s)(.+)/)[2];
+                this.description = data.match(/(\#\s+description\s+=\s)(.+)/)[2];
+
+                let posts = data.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/g);
+
+                posts.forEach((item) => {
+                    let date = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[1];
+
+                    let text = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[2];
+
+                    this.posts.push({
+                        date,
+                        text,
+                    });
+                });
+
+                this.posts = this.posts.reverse();
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    },
+};
+</script>
+
+<style scoped>
+.profile-name {
+    background-color: #eee5b8;
+    padding: 4px 10px 4px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.profile {
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.profile-left {
+    margin-right: 10px;
+    min-width: calc(200px - 15px);
+}
+
+.profile-left > img {
+    width: 100%;
+}
+
+.profile-right {
+    min-width: calc(432px - 15px);
+}
+
+.profile-right-info {
+    padding: 0px 6px 15px;
+}
+
+.profile-right-name {
+    font-size: 13px;
+    border-bottom: 1px solid #ecebe2;
+    margin-top: 0;
+}
+
+.profile-right-about td {
+    font-size: 11px;
+}
+
+.profile-right-about td:first-child {
+    font-weight: normal;
+    color: gray;
+    width: 30%;
+}
+
+.profile-right-wall {
+    background: #eae8cb;
+    border-top: 1px solid #dfdabc;
+    height: 20px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: left;
+}
+
+.profile-right-post {
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+    border-bottom: 1px solid #ecebe2;
+}
+
+.profile-right-post img {
+    width: 50px;
+    height: 100%;
+    margin-right: 10px;
+}
+
+.profile-right-post > div {
+    width: calc(100% - 65px);
+}
+
+.profile-right-post p {
+    font-size: 11px;
+}
+
+.profile-right-post p:nth-child(1) {
+    font-weight: 700;
+    margin-top: 0;
+}
+
+.profile-right-post p:nth-child(2) {
+    word-break: break-all;
+}
+
+.profile-right-post p:nth-child(3) {
+    color: gray;
+}
+</style>
