@@ -10,7 +10,7 @@ Vue.router = router;
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 
-if (window.location.href.indexOf('ost:') > -1)
+if (window.location.href.indexOf('twtvk.cipherdogs.net') > -1 || window.location.href.indexOf('ost:') > -1)
     new Vue({
         render: h => h(Index),
         el: '#app',
