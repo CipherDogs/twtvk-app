@@ -4,8 +4,15 @@
         <div class="profile">
             <div class="profile-left">
                 <img :src="avatar" />
-                <div class="profile-right-following">
-                    <div class="profile-right-following-name">Following</div>
+                <div class="profile-left-following">
+                    <div class="profile-left-following-name">Following</div>
+                    <div class="profile-left-following-count">{{ count_follow }} users</div>
+                    <div class="profile-left-follows">
+                        <div class="profile-left-follow" v-for="item in follow" v-bind:key="item.user">
+                            <img src="/avatar.svg">
+                            <a :href="`/?url=${item.link}`">{{ item.user }}</a>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="profile-right">
@@ -65,6 +72,8 @@ export default {
             nick: "TWTXT User",
             avatar: "/avatar.svg",
             description: "",
+            count_follow: 0,
+            follow: [],
             count_posts: 0,
             posts: [],
         };
@@ -82,8 +91,21 @@ export default {
                 const avatar = data.match(/(\#\s+avatar\s+=\s)(.+)/);
                 this.avatar = avatar != null ? avatar[2] : "/avatar.svg";
 
-                let description = data.match(/(\#\s+description\s+=\s)(.+)/);
+                const description = data.match(/(\#\s+description\s+=\s)(.+)/);
                 this.description = description != null ? description[2] : "";
+
+                const follow = data.match(/(\#\s+follow\s+=\s)(.+)/g) || [];
+                for (let i = 0; i < follow.length && i < 6; i++ ) {
+                    const u = follow[i].match(/([A-Za-z]+)\s((http:|https:)+[^\s]+[\w])/);
+                    if (u != null) {
+                        this.follow.push({
+                            user: u[1],
+                            link: u[2],
+                        });
+                    }
+                }
+
+                this.count_follow = follow.length;
 
                 const posts = data.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/g) || [];
 
@@ -129,15 +151,57 @@ export default {
 
 .profile-left {
     margin-right: 10px;
-    min-width: calc(200px - 15px);
+    min-width: calc(200px - 10px);
 }
 
 .profile-left > img {
     width: 100%;
 }
 
+.profile-left-following-count {
+    background: #eee;
+    color: #777;
+    height: 14px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: normal;
+    text-align: left;
+}
+
+.profile-left-follows {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 5px;
+}
+
+.profile-left-follow {
+    display: flex;
+    flex-direction: column;
+    width: 50px;
+    margin: 5px;
+}
+
+.profile-left-follow > a {
+    color: black;
+    text-decoration: none;
+    text-align: center;
+    font-size: 11px;
+    font-weight: normal;
+    width: 100%;
+    word-break: break-all;
+}
+
+.profile-left-follow > a:hover {
+    text-decoration: underline;
+}
+
+.profile-left-follow > img {
+    width: 100%;
+}
+
 .profile-right {
-    min-width: calc(432px - 15px);
+    min-width: calc(432px - 20px);
 }
 
 .profile-right-info {
@@ -160,7 +224,7 @@ export default {
     width: 30%;
 }
 
-.profile-right-following-name, .profile-right-wall {
+.profile-left-following-name, .profile-right-wall {
     background: #eae8cb;
     border-top: 1px solid #dfdabc;
     height: 14px;
