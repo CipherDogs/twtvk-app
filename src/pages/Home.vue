@@ -17,6 +17,10 @@
                                 <td>About:</td>
                                 <td>{{ description }}</td>
                             </tr>
+                            <tr>
+                                <td>Link:</td>
+                                <td>{{ url }}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -57,32 +61,39 @@ export default {
     name: "Home",
     data() {
         return {
-            nick: "",
-            avatar: "",
+            url: "",
+            nick: "TWTXT User",
+            avatar: "/avatar.svg",
             description: "",
             count_posts: 0,
             posts: [],
         };
     },
     async mounted() {
-        let url = this.$route.query.url;
+        this.url = this.$route.query.url;
         await axios
-            .get(`https://api.allorigins.win/get?url=${url}`)
+            .get(`https://api.allorigins.win/get?url=${this.url}`)
             .then((res) => {
-                let data = res.data.contents;
-                this.nick = data.match(/(\#\s+nick\s+=\s)([A-Za-z0-9]+)/)[2];
-                this.avatar = data.match(/(\#\s+avatar\s+=\s)(.+)/)[2];
-                this.description = data.match(/(\#\s+description\s+=\s)(.+)/)[2];
+                const data = res.data.contents;
 
-                let posts = data.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/g);
+                const nick = data.match(/(\#\s+nick\s+=\s)([A-Za-z0-9]+)/);
+                this.nick = nick != null ? nick[2] : "";
+
+                const avatar = data.match(/(\#\s+avatar\s+=\s)(.+)/);
+                this.avatar = avatar != null ? avatar[2] : "/avatar.svg";
+
+                let description = data.match(/(\#\s+description\s+=\s)(.+)/);
+                this.description = description != null ? description[2] : "";
+
+                const posts = data.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/g) || [];
 
                 posts.forEach((item) => {
-                    let date = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[1];
+                    const date = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[1];
                     let text = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[2];
 
-                    let u = text.match(/@<([A-Za-z]+)\s((http:|https:)+[^\s]+[\w])>/);
+                    const u = text.match(/@<([A-Za-z]+)\s((http:|https:)+[^\s]+[\w])>/);
                     if (u != null) {
-                        text = text.replace(u[0], `<a href="${u[2]}">@${u[1]}</a>`);
+                        text = text.replace(u[0], `<a href="/?url=${u[2]}">@${u[1]}</a>`);
                     }
 
                     this.posts.push({
