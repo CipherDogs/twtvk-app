@@ -63,6 +63,7 @@
             
 <script>
 import axios from "axios";
+import { marked } from "marked";
 
 export default {
     name: "Home",
@@ -85,7 +86,7 @@ export default {
             .then((res) => {
                 const data = res.data.contents;
 
-                const nick = data.match(/(\#\s+nick\s+=\s)([A-Za-z0-9]+)/);
+                const nick = data.match(/(\#\s+nick\s+=\s)(~?[A-Za-z0-9]+)/);
                 this.nick = nick != null ? nick[2] : "";
 
                 const avatar = data.match(/(\#\s+avatar\s+=\s)(.+)/);
@@ -113,10 +114,20 @@ export default {
                     const date = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[1];
                     let text = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[2];
 
-                    const u = text.match(/@<([A-Za-z]+)\s((http:|https:)+[^\s]+[\w])>/);
-                    if (u != null) {
-                        text = text.replace(u[0], `<a href="/?url=${u[2]}">@${u[1]}</a>`);
-                    }
+                    const users = text.match(/@<(~?[A-Za-z0-9_]+)\s((http:|https:)+[^\s]+[\w])>/g) || [];
+                    users.forEach((item) => {
+                        let u = item.match(/@<(~?[A-Za-z0-9_]+)\s((http:|https:)+[^\s]+[\w])>/);
+                        text = text.replace(u[0], `<a class="profile-right-post-user" href="/?url=${u[2]}">@${u[1]}</a>`);
+                    });
+
+                    const threads = text.match(/#<([A-Za-z0-9]+)\s((http:|https:)+[^\s]+[\w])>/g) || [];
+                    threads.forEach((item) => {
+                        let h = item.match(/#<([A-Za-z0-9]+)\s((http:|https:)+[^\s]+[\w])>/);
+                        text = text.replace(h[0], `<a href="${h[2]}">#${h[1]}</a>`);
+                    });
+
+                    // console.log(marked)
+                    text = marked.parse(text);
 
                     this.posts.push({
                         date,
@@ -134,7 +145,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .profile-name {
     background-color: #eee5b8;
     padding: 4px 10px 4px;
@@ -156,6 +167,10 @@ export default {
 
 .profile-left > img {
     width: 100%;
+}
+
+.profile-left-following {
+    margin-top: 10px;
 }
 
 .profile-left-following-count {
@@ -222,6 +237,7 @@ export default {
     font-weight: normal;
     color: gray;
     width: 30%;
+    vertical-align: top;
 }
 
 .profile-left-following-name, .profile-right-wall {
@@ -260,16 +276,33 @@ export default {
     font-size: 11px;
 }
 
-.profile-right-post p:nth-child(1) {
+.profile-right-post > div img {
+    width: 100%;
+}
+
+.profile-right-post > div a {
+    color: black;
+    text-decoration: black;
+}
+
+.profile-right-post > div a:hover {
+    text-decoration: underline;
+}
+
+.profile-right-post-user {
+    font-weight: 700;
+}
+
+.profile-right-post > div > p:nth-child(1) {
     font-weight: 700;
     margin-top: 0;
 }
 
-.profile-right-post p:nth-child(2) {
+.profile-right-post > div > p:nth-child(2) {
     word-break: break-word;
 }
 
-.profile-right-post p:nth-child(3) {
+.profile-right-post > div > p:nth-child(3) {
     color: gray;
 }
 </style>
