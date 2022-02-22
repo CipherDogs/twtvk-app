@@ -89,6 +89,8 @@ export default {
                 const nick = data.match(/(\#\s+nick\s+=\s)(~?[A-Za-z0-9]+)/);
                 this.nick = nick != null ? nick[2] : "";
 
+                document.title = this.nick + " - TWTVK";
+
                 const avatar = data.match(/(\#\s+avatar\s+=\s)(.+)/);
                 this.avatar = avatar != null ? avatar[2] : "/avatar.svg";
 
