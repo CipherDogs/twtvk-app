@@ -116,9 +116,9 @@ export default {
                     const date = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[1];
                     let text = item.match(/([0-9]+-[0-9].-[0-9].T[0-9].:[0-9].:[0-9].Z)\t(.+)/)[2];
 
-                    const users = text.match(/@<(~?[A-Za-z0-9_]+)\s((http:|https:)+[^\s]+[\w])>/g) || [];
+                    const users = text.match(/@<(~?[A-Za-z0-9_]+)\s((http:|https:|gemini:)+[^\s]+[\w])>/g) || [];
                     users.forEach((item) => {
-                        let u = item.match(/@<(~?[A-Za-z0-9_]+)\s((http:|https:)+[^\s]+[\w])>/);
+                        let u = item.match(/@<(~?[A-Za-z0-9_]+)\s((http:|https:|gemini:)+[^\s]+[\w])>/);
                         text = text.replace(u[0], `<a class="profile-right-post-user" href="/?url=${u[2]}">@${u[1]}</a>`);
                     });
 
