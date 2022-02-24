@@ -8,10 +8,10 @@
                     <div class="profile-left-following-name">Following</div>
                     <div class="profile-left-following-count">{{ count_follow }} users</div>
                     <div class="profile-left-follows">
-                        <div class="profile-left-follow" v-for="item in follow" v-bind:key="item.user">
-                            <img src="/avatar.svg">
-                            <a :href="`/?url=${item.link}`">{{ item.user }}</a>
-                        </div>
+                        <a class="profile-left-follow" v-for="item in follow" v-bind:key="item.user" :href="`/?url=${item.link}`">
+                            <img :src="item.avatar">
+                            <p>{{ item.user }}</p>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@ export default {
         this.url = this.$route.query.url;
         await axios
             .get(`https://api.allorigins.win/get?url=${this.url}`)
-            .then((res) => {
+            .then(async (res) => {
                 const data = res.data.contents;
 
                 const nick = data.match(/(\#\s+nick\s+=\s)(~?[A-Za-z0-9]+)/);
@@ -101,8 +101,10 @@ export default {
                 for (let i = 0; i < follow.length && i < 6; i++ ) {
                     const u = follow[i].match(/([A-Za-z]+)\s((http:|https:)+[^\s]+[\w])/);
                     if (u != null) {
+                        const info = await this.getInfo(u[2]);
                         this.follow.push({
                             user: u[1],
+                            avatar: info.avatar,
                             link: u[2],
                         });
                     }
@@ -128,7 +130,6 @@ export default {
                         text = text.replace(h[0], `<a href="${h[2]}">#${h[1]}</a>`);
                     });
 
-                    // console.log(marked)
                     text = marked.parse(text);
 
                     this.posts.push({
@@ -143,6 +144,32 @@ export default {
             .catch((err) => {
                 console.error(err);
             });
+    },
+    methods: {
+        async getInfo(link) {
+            let nick = "";
+            let avatar = "/avatar.svg";
+            let description = "";
+
+            await axios
+                .get(`https://api.allorigins.win/get?url=${link}`)
+                .then((res) => {
+                    const data = res.data.contents;
+
+                    nick = data.match(/(\#\s+nick\s+=\s)(~?[A-Za-z0-9]+)/);
+                    avatar = data.match(/(\#\s+avatar\s+=\s)(.+)/);
+                    description = data.match(/(\#\s+description\s+=\s)(.+)/);
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+
+            return {
+                nick: nick != null ? nick[2] : "",
+                avatar: avatar != null ? avatar[2] : "/avatar.svg",
+                description: description != null ? description[2] : "",
+            }
+        }
     },
 };
 </script>
@@ -199,9 +226,12 @@ export default {
     margin: 5px;
 }
 
-.profile-left-follow > a {
-    color: black;
+.profile-left-follow, .profile-left-follow:hover, .profile-left-follow:active {
     text-decoration: none;
+}
+
+.profile-left-follow > p {
+    color: black;
     text-align: center;
     font-size: 11px;
     font-weight: normal;
@@ -209,7 +239,7 @@ export default {
     word-break: break-all;
 }
 
-.profile-left-follow > a:hover {
+.profile-left-follow:hover > p {
     text-decoration: underline;
 }
 
